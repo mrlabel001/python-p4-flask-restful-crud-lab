@@ -50,6 +50,44 @@ class PlantByID(Resource):
 
 api.add_resource(PlantByID, '/plants/<int:id>')
 
+@app.route('/plants/<int:id>', methods=['PATCH'])
+def update_plant(id):
+    # Retrieve the plant by id
+    plant = db.session.get(Plant, id)
+
+    # Check if the plant exists
+    if not plant:
+        return jsonify({'error': 'Plant not found'}), 404
+
+    # Update the plant attributes based on the request body
+    data = request.json
+    if 'is_in_stock' in data:
+        plant.is_in_stock = data['is_in_stock']
+
+    # Commit the changes to the database
+    db.session.commit()
+
+    # Return the updated plant as JSON response
+    return jsonify({
+        'id': plant.id,
+        'name': plant.name,
+        'image': plant.image,
+        'price': plant.price,
+        'is_in_stock': plant.is_in_stock
+    })
+
+@app.route('/plants/<int:id>', methods=['DELETE'])
+def delete_plant(id):
+    plant = Plant.query.get(id)
+
+    if not plant:
+        return jsonify({'error': 'Plant not found'}), 404
+
+    db.session.delete(plant)
+    db.session.commit()
+
+    return '', 204
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
